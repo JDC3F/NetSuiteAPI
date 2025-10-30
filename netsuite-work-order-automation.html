@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSuite Work Order Automation v2 - Complete Workflow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* NetSuite Header */
+        .ns-header {
+            background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #3b82f6;
+            backdrop-filter: blur(10px);
+        }
+
+        .ns-header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ns-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ns-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .ns-nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .ns-nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .ns-nav a:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .ns-nav a.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Workflow Steps */
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .workflow-steps::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #475569;
+            z-index: 0;
+        }
+
+        .step {
+            background: #1e293b;
+            border: 2px solid #475569;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-color: #3b82f6;
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+
+        .step.completed {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .step-label {
+            position: absolute;
+            bottom: -30px;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        /* Content Area */
+        .content-area {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 1rem;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid #475569;
+            min-height: 600px;
+        }
+
+        /* Step 1: Import Options */
+        .import-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 2px solid #475569;
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .option-card.selected {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #064e3b, #065f46);
+        }
+
+        .option-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+        }
+
+        .option-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            border: 2px dashed #475569;
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Form Creation */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .form-input, .form-select {
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Work Order Table */
+        .wo-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .wo-table th {
+            background: #0f172a;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+        }
+
+        .wo-table th:first-child {
+            border-radius: 0.5rem 0 0 0.5rem;
+        }
+
+        .wo-table th:last-child {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .wo-table td {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1rem;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+        }
+
+        .wo-table tr {
+            transition: all 0.3s;
+        }
+
+        .wo-table tr:hover td {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fbbf24;
+            color: #78350f;
+        }
+
+        .status-validated {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .status-processing {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .status-completed {
+            background: #10b981;
+            color: white;
+        }
+
+        /* Action Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #64748b;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Validation Panel */
+        .validation-panel {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border: 1px solid #334155;
+        }
+
+        .validation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .validation-item.processing {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { background: rgba(30, 41, 59, 0.5); }
+            50% { background: rgba(59, 130, 246, 0.2); }
+        }
+
+        .validation-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .validation-passed {
+            background: #10b981;
+            color: white;
+        }
+
+        .validation-failed {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* Assembly Progress */
+        .assembly-progress {
+            margin-top: 2rem;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: #0f172a;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 15px;
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Assembly Cards */
+        .assembly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .assembly-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #475569;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .assembly-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .assembly-card.building {
+            border-color: #fbbf24;
+            animation: buildingPulse 1s infinite;
+        }
+
+        @keyframes buildingPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 20px 10px rgba(251, 191, 36, 0.4); }
+        }
+
+        .assembly-card.completed {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #064e3b, #065f46);
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid #475569;
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #064e3b, #065f46);
+        }
+
+        .notification.error {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+        }
+
+        .notification.info {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(59, 130, 246, 0.3);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 1px solid #475569;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Hidden by default */
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        /* Edit Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #475569;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #cbd5e1;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- NetSuite Header -->
+    <div class="ns-header">
+        <div class="ns-header-content">
+            <div class="ns-logo">
+                <div class="ns-logo-icon">NS</div>
+                <h1 style="font-size: 1.25rem; font-weight: 600;">NetSuite Manufacturing</h1>
+            </div>
+            <nav class="ns-nav">
+                <a href="#">Dashboard</a>
+                <a href="#" class="active">Work Orders</a>
+                <a href="#">Inventory</a>
+                <a href="#">Reports</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Workflow Steps -->
+        <div class="workflow-steps">
+            <div class="step active" id="step1" onclick="goToStep(1)">
+                <span>1</span>
+                <span class="step-label">Create Work Orders</span>
+            </div>
+            <div class="step" id="step2" onclick="goToStep(2)">
+                <span>2</span>
+                <span class="step-label">Review & Edit</span>
+            </div>
+            <div class="step" id="step3" onclick="goToStep(3)">
+                <span>3</span>
+                <span class="step-label">Validate Orders</span>
+            </div>
+            <div class="step" id="step4" onclick="goToStep(4)">
+                <span>4</span>
+                <span class="step-label">Automated Assembly</span>
+            </div>
+        </div>
+
+        <!-- Statistics Dashboard -->
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Work Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingOrders">0</div>
+                <div class="stat-label">Pending Validation</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="processingOrders">0</div>
+                <div class="stat-label">Processing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="completedOrders">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Step 1: Create Work Orders -->
+            <div id="step1-content" class="step-content active">
+                <h2 style="margin-bottom: 2rem; font-size: 1.75rem;">Choose Work Order Creation Method</h2>
+
+                <div class="import-options">
+                    <!-- Option 1: Excel/CSV Upload -->
+                    <div class="option-card" id="excelCard" onclick="selectOption('excel')">
+                        <div class="option-icon">📊</div>
+                        <h3>Import from Excel/CSV</h3>
+                        <p style="color: #94a3b8; margin-bottom: 1.5rem;">
+                            Upload a spreadsheet containing multiple work orders for batch processing.
+                        </p>
+                        <div class="upload-area" id="uploadArea" style="display: none;">
+                            <div class="spinner" id="uploadSpinner" style="margin: 0 auto; display: none;"></div>
+                            <p id="uploadText">
+                                📁 Drag & drop your Excel/CSV file here<br>
+                                <span style="color: #64748b; font-size: 0.875rem;">or click to browse</span>
+                            </p>
+                            <input type="file" id="fileInput" style="display: none;" accept=".csv,.xlsx,.xls">
+                        </div>
+                        <button class="btn btn-primary" id="simulateUploadBtn" style="display: none; margin-top: 1rem;" onclick="simulateFileUpload()">
+                            📊 Use Demo Data
+                        </button>
+                        <ul style="color: #64748b; font-size: 0.875rem; margin-top: 1rem;">
+                            <li>Supports .xlsx, .xls, .csv formats</li>
+                            <li>Batch create up to 100 orders</li>
+                            <li>Auto-validates data format</li>
+                        </ul>
+                    </div>
+
+                    <!-- Option 2: Manual Form -->
+                    <div class="option-card" id="formCard" onclick="selectOption('form')">
+                        <div class="option-icon">📝</div>
+                        <h3>Create with Form</h3>
+                        <p style="color: #94a3b8; margin-bottom: 1.5rem;">
+                            Use our guided form to create work orders one at a time with validation.
+                        </p>
+                        <div id="formContainer" style="display: none;">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Assembly Item</label>
+                                    <select class="form-select" id="assemblyItem">
+                                        <option value="">Select Item...</option>
+                                        <option value="DESKTOP-GX500">Gaming Desktop GX500</option>
+                                        <option value="LAPTOP-PRO15">Laptop Pro 15</option>
+                                        <option value="SERVER-R720">Server R720</option>
+                                        <option value="WORKSTATION-W580">Workstation W580</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" class="form-input" id="quantity" min="1" max="100" placeholder="Enter quantity">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Priority</label>
+                                    <select class="form-select" id="priority">
+                                        <option value="normal">Normal</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="date" class="form-input" id="dueDate">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="addWorkOrder()">
+                                ➕ Add Work Order
+                            </button>
+                        </div>
+                        <ul style="color: #64748b; font-size: 0.875rem; margin-top: 1rem;">
+                            <li>Real-time field validation</li>
+                            <li>Component availability check</li>
+                            <li>Custom fields support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="proceedToStep2()" disabled id="proceedBtn1">
+                        Continue to Review →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Review & Edit -->
+            <div id="step2-content" class="step-content">
+                <h2 style="margin-bottom: 2rem; font-size: 1.75rem;">Review Work Orders</h2>
+
+                <table class="wo-table">
+                    <thead>
+                        <tr>
+                            <th>WO Number</th>
+                            <th>Assembly Item</th>
+                            <th>Quantity</th>
+                            <th>Priority</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workOrdersTable">
+                        <!-- Work orders will be populated here -->
+                    </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <button class="btn btn-secondary" onclick="goToStep(1)">
+                        ← Back
+                    </button>
+                    <button class="btn btn-primary" onclick="proceedToStep3()">
+                        Proceed to Validation →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Validation -->
+            <div id="step3-content" class="step-content">
+                <h2 style="margin-bottom: 2rem; font-size: 1.75rem;">Validate Work Orders</h2>
+
+                <div class="validation-panel">
+                    <h3 style="margin-bottom: 1rem;">Validation Checks</h3>
+                    <div id="validationChecks">
+                        <div class="validation-item" id="check1">
+                            <span>Checking component availability...</span>
+                            <div class="validation-icon" id="icon1">⏳</div>
+                        </div>
+                        <div class="validation-item" id="check2">
+                            <span>Verifying BOM requirements...</span>
+                            <div class="validation-icon" id="icon2">⏳</div>
+                        </div>
+                        <div class="validation-item" id="check3">
+                            <span>Validating inventory locations...</span>
+                            <div class="validation-icon" id="icon3">⏳</div>
+                        </div>
+                        <div class="validation-item" id="check4">
+                            <span>Checking production capacity...</span>
+                            <div class="validation-icon" id="icon4">⏳</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <button class="btn btn-secondary" onclick="goToStep(2)">
+                        ← Back
+                    </button>
+                    <button class="btn btn-success" id="startAssemblyBtn" disabled onclick="startAutomatedAssembly()">
+                        🚀 Start Automated Assembly
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Automated Assembly -->
+            <div id="step4-content" class="step-content">
+                <h2 style="margin-bottom: 2rem; font-size: 1.75rem;">Automated Assembly Processing</h2>
+
+                <div class="assembly-progress">
+                    <h3 style="margin-bottom: 1rem;">Overall Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">0%</div>
+                    </div>
+                </div>
+
+                <div class="assembly-grid" id="assemblyGrid">
+                    <!-- Assembly cards will be populated here -->
+                </div>
+
+                <div style="text-align: center; margin-top: 3rem;">
+                    <button class="btn btn-success" id="completeBtn" style="display: none;" onclick="completeProcess()">
+                        ✅ View Completed Assemblies
+                    </button>
+                    <button class="btn btn-primary" id="newBatchBtn" style="display: none; margin-left: 1rem;" onclick="resetDemo()">
+                        🔄 Start New Batch
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Work Order</h3>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Assembly Item</label>
+                    <select class="form-select" id="editAssemblyItem">
+                        <option value="DESKTOP-GX500">Gaming Desktop GX500</option>
+                        <option value="LAPTOP-PRO15">Laptop Pro 15</option>
+                        <option value="SERVER-R720">Server R720</option>
+                        <option value="WORKSTATION-W580">Workstation W580</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-input" id="editQuantity" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select" id="editPriority">
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" class="form-input" id="editDueDate">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Global variables
+        let currentStep = 1;
+        let selectedOption = null;
+        let workOrders = [];
+        let validationPassed = false;
+        let editingIndex = null;
+        let woCounter = 1000;
+
+        // Sample data for demo
+        const sampleExcelData = [
+            { item: 'DESKTOP-GX500', quantity: 5, priority: 'high', dueDate: '2025-11-15' },
+            { item: 'LAPTOP-PRO15', quantity: 8, priority: 'normal', dueDate: '2025-11-20' },
+            { item: 'SERVER-R720', quantity: 2, priority: 'urgent', dueDate: '2025-11-10' },
+            { item: 'WORKSTATION-W580', quantity: 3, priority: 'high', dueDate: '2025-11-18' }
+        ];
+
+        const assemblyNames = {
+            'DESKTOP-GX500': 'Gaming Desktop GX500',
+            'LAPTOP-PRO15': 'Laptop Pro 15',
+            'SERVER-R720': 'Server R720',
+            'WORKSTATION-W580': 'Workstation W580'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to 7 days from now
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 7);
+            const dateInput = document.getElementById('dueDate');
+            if (dateInput) {
+                dateInput.min = new Date().toISOString().split('T')[0];
+                dateInput.value = futureDate.toISOString().split('T')[0];
+            }
+
+            // Setup file upload handlers
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            if (uploadArea && fileInput) {
+                uploadArea.addEventListener('click', (e) => {
+                    if (e.target.id !== 'simulateUploadBtn') {
+                        fileInput.click();
+                    }
+                });
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    simulateFileUpload();
+                });
+                fileInput.addEventListener('change', simulateFileUpload);
+            }
+        });
+
+        // Option Selection
+        function selectOption(option) {
+            selectedOption = option;
+
+            // Remove selected class from all cards
+            document.getElementById('excelCard').classList.remove('selected');
+            document.getElementById('formCard').classList.remove('selected');
+
+            // Hide all option-specific elements
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('simulateUploadBtn').style.display = 'none';
+            document.getElementById('formContainer').style.display = 'none';
+
+            if (option === 'excel') {
+                document.getElementById('excelCard').classList.add('selected');
+                document.getElementById('uploadArea').style.display = 'block';
+                document.getElementById('simulateUploadBtn').style.display = 'block';
+                document.getElementById('proceedBtn1').disabled = workOrders.length === 0;
+            } else if (option === 'form') {
+                document.getElementById('formCard').classList.add('selected');
+                document.getElementById('formContainer').style.display = 'block';
+                document.getElementById('proceedBtn1').disabled = workOrders.length === 0;
+            }
+        }
+
+        // File Upload Simulation
+        function simulateFileUpload() {
+            const uploadText = document.getElementById('uploadText');
+            const uploadSpinner = document.getElementById('uploadSpinner');
+
+            uploadText.style.display = 'none';
+            uploadSpinner.style.display = 'block';
+
+            showNotification('Processing file...', 'info');
+
+            setTimeout(() => {
+                // Load sample data
+                sampleExcelData.forEach(data => {
+                    workOrders.push({
+                        woNumber: 'WO-' + woCounter++,
+                        item: data.item,
+                        itemName: assemblyNames[data.item],
+                        quantity: data.quantity,
+                        priority: data.priority,
+                        dueDate: data.dueDate,
+                        status: 'pending'
+                    });
+                });
+
+                uploadSpinner.style.display = 'none';
+                uploadText.innerHTML = '✅ Loaded ' + sampleExcelData.length + ' work orders<br><span style="color: #10b981;">Ready to proceed</span>';
+                uploadText.style.display = 'block';
+
+                document.getElementById('proceedBtn1').disabled = false;
+                showNotification('Successfully loaded ' + sampleExcelData.length + ' work orders!', 'success');
+                updateStats();
+            }, 2000);
+        }
+
+        // Add Work Order (Manual Form)
+        function addWorkOrder() {
+            const assemblyItem = document.getElementById('assemblyItem').value;
+            const quantity = document.getElementById('quantity').value;
+            const priority = document.getElementById('priority').value;
+            const dueDate = document.getElementById('dueDate').value;
+
+            if (!assemblyItem || !quantity || !dueDate) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            workOrders.push({
+                woNumber: 'WO-' + woCounter++,
+                item: assemblyItem,
+                itemName: assemblyNames[assemblyItem],
+                quantity: parseInt(quantity),
+                priority: priority,
+                dueDate: dueDate,
+                status: 'pending'
+            });
+
+            // Reset form
+            document.getElementById('assemblyItem').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('priority').value = 'normal';
+
+            document.getElementById('proceedBtn1').disabled = false;
+            showNotification('Work order added successfully!', 'success');
+            updateStats();
+        }
+
+        // Update Statistics
+        function updateStats() {
+            const total = workOrders.length;
+            const pending = workOrders.filter(wo => wo.status === 'pending').length;
+            const processing = workOrders.filter(wo => wo.status === 'processing').length;
+            const completed = workOrders.filter(wo => wo.status === 'completed').length;
+
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('pendingOrders').textContent = pending;
+            document.getElementById('processingOrders').textContent = processing;
+            document.getElementById('completedOrders').textContent = completed;
+        }
+
+        // Navigation Functions
+        function goToStep(step) {
+            // Don't allow going forward without completing previous steps
+            if (step > currentStep + 1) return;
+            if (step === 2 && workOrders.length === 0) return;
+            if (step === 3 && currentStep < 2) return;
+            if (step === 4 && !validationPassed) return;
+
+            // Hide all step contents
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Show target step
+            document.getElementById(`step${step}-content`).classList.add('active');
+
+            // Update step indicators
+            updateStepIndicators(step);
+            currentStep = step;
+
+            // Show stats when past step 1
+            document.getElementById('statsGrid').style.display = step > 1 ? 'grid' : 'none';
+
+            // Update stats
+            if (step > 1) {
+                updateStats();
+            }
+
+            // Populate work orders table if going to step 2
+            if (step === 2) {
+                populateWorkOrdersTable();
+            }
+        }
+
+        function updateStepIndicators(activeStep) {
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById('step' + i);
+                stepEl.classList.remove('active', 'completed');
+
+                if (i === activeStep) {
+                    stepEl.classList.add('active');
+                } else if (i < activeStep) {
+                    stepEl.classList.add('completed');
+                }
+            }
+        }
+
+        function proceedToStep2() {
+            if (workOrders.length === 0) {
+                showNotification('Please create at least one work order', 'error');
+                return;
+            }
+            goToStep(2);
+        }
+
+        function proceedToStep3() {
+            goToStep(3);
+            setTimeout(runValidation, 500);
+        }
+
+        // Populate Work Orders Table
+        function populateWorkOrdersTable() {
+            const tbody = document.getElementById('workOrdersTable');
+            tbody.innerHTML = '';
+
+            workOrders.forEach((wo, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${wo.woNumber}</td>
+                    <td>${wo.itemName}</td>
+                    <td>${wo.quantity}</td>
+                    <td><span style="text-transform: capitalize;">${wo.priority}</span></td>
+                    <td>${new Date(wo.dueDate).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${wo.status}">${wo.status.toUpperCase()}</span></td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;" onclick="editWorkOrder(${index})">
+                            ✏️ Edit
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteWorkOrder(${index})">
+                            🗑️
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Edit Work Order
+        function editWorkOrder(index) {
+            editingIndex = index;
+            const wo = workOrders[index];
+
+            document.getElementById('editAssemblyItem').value = wo.item;
+            document.getElementById('editQuantity').value = wo.quantity;
+            document.getElementById('editPriority').value = wo.priority;
+            document.getElementById('editDueDate').value = wo.dueDate;
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingIndex = null;
+        }
+
+        function saveEdit() {
+            if (editingIndex === null) return;
+
+            const wo = workOrders[editingIndex];
+            wo.item = document.getElementById('editAssemblyItem').value;
+            wo.itemName = assemblyNames[wo.item];
+            wo.quantity = parseInt(document.getElementById('editQuantity').value);
+            wo.priority = document.getElementById('editPriority').value;
+            wo.dueDate = document.getElementById('editDueDate').value;
+
+            populateWorkOrdersTable();
+            closeEditModal();
+            showNotification('Work order updated successfully!', 'success');
+        }
+
+        // Delete Work Order
+        function deleteWorkOrder(index) {
+            if (confirm('Are you sure you want to delete this work order?')) {
+                workOrders.splice(index, 1);
+                populateWorkOrdersTable();
+                updateStats();
+                showNotification('Work order deleted', 'info');
+            }
+        }
+
+        // Validation Process
+        function runValidation() {
+            const checks = [
+                { id: 'check1', icon: 'icon1', text: 'Component availability verified ✓', delay: 1000 },
+                { id: 'check2', icon: 'icon2', text: 'BOM requirements validated ✓', delay: 2000 },
+                { id: 'check3', icon: 'icon3', text: 'Inventory locations confirmed ✓', delay: 3000 },
+                { id: 'check4', icon: 'icon4', text: 'Production capacity sufficient ✓', delay: 4000 }
+            ];
+
+            checks.forEach(check => {
+                setTimeout(() => {
+                    document.getElementById(check.id).classList.add('processing');
+
+                    setTimeout(() => {
+                        document.getElementById(check.id).classList.remove('processing');
+                        document.getElementById(check.id).querySelector('span').textContent = check.text;
+                        document.getElementById(check.icon).textContent = '✓';
+                        document.getElementById(check.icon).classList.add('validation-passed');
+
+                        if (check.id === 'check4') {
+                            validationPassed = true;
+                            document.getElementById('startAssemblyBtn').disabled = false;
+                            showNotification('All validation checks passed!', 'success');
+                        }
+                    }, 800);
+                }, check.delay);
+            });
+        }
+
+        // Start Automated Assembly
+        function startAutomatedAssembly() {
+            goToStep(4);
+            setTimeout(processAssemblies, 500);
+        }
+
+        function processAssemblies() {
+            const grid = document.getElementById('assemblyGrid');
+            grid.innerHTML = '';
+
+            let completed = 0;
+            const total = workOrders.length;
+
+            workOrders.forEach((wo, index) => {
+                const delay = index * 1500;
+
+                setTimeout(() => {
+                    // Create assembly card
+                    const card = document.createElement('div');
+                    card.className = 'assembly-card';
+                    card.innerHTML = `
+                        <h4 style="margin-bottom: 0.5rem;">${wo.woNumber}</h4>
+                        <p style="color: #94a3b8; margin-bottom: 1rem;">${wo.itemName}</p>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: #cbd5e1;">Quantity:</span>
+                            <span style="font-weight: bold;">${wo.quantity}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: #cbd5e1;">Priority:</span>
+                            <span style="font-weight: bold; text-transform: capitalize;">${wo.priority}</span>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <span class="status-badge status-processing" id="status-${index}">BUILDING</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+
+                    // Animate card appearance
+                    setTimeout(() => card.classList.add('show'), 50);
+                    card.classList.add('building');
+
+                    wo.status = 'processing';
+                    updateStats();
+
+                    // Complete assembly after delay
+                    setTimeout(() => {
+                        card.classList.remove('building');
+                        card.classList.add('completed');
+                        document.getElementById(`status-${index}`).className = 'status-badge status-completed';
+                        document.getElementById(`status-${index}`).textContent = 'COMPLETED ✓';
+
+                        wo.status = 'completed';
+                        completed++;
+
+                        // Update progress bar
+                        const progress = Math.round((completed / total) * 100);
+                        document.getElementById('progressFill').style.width = progress + '%';
+                        document.getElementById('progressFill').textContent = progress + '%';
+
+                        updateStats();
+
+                        // Show completion buttons
+                        if (completed === total) {
+                            setTimeout(() => {
+                                document.getElementById('completeBtn').style.display = 'inline-flex';
+                                document.getElementById('newBatchBtn').style.display = 'inline-flex';
+                                showNotification(`All ${total} assemblies completed successfully!`, 'success');
+                            }, 500);
+                        }
+                    }, 2500);
+                }, delay);
+            });
+        }
+
+        // Complete Process
+        function completeProcess() {
+            showNotification('Assembly builds created and inventory updated!', 'success');
+            setTimeout(() => {
+                showNotification('Manufacturing process complete. Check inventory for updates.', 'info');
+            }, 2000);
+        }
+
+        // Reset Demo
+        function resetDemo() {
+            if (confirm('Start a new batch? This will clear all current work orders.')) {
+                workOrders = [];
+                selectedOption = null;
+                validationPassed = false;
+                currentStep = 1;
+
+                document.getElementById('proceedBtn1').disabled = true;
+                document.getElementById('startAssemblyBtn').disabled = true;
+                document.getElementById('completeBtn').style.display = 'none';
+                document.getElementById('newBatchBtn').style.display = 'none';
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressFill').textContent = '0%';
+
+                document.getElementById('excelCard').classList.remove('selected');
+                document.getElementById('formCard').classList.remove('selected');
+                document.getElementById('uploadArea').style.display = 'none';
+                document.getElementById('simulateUploadBtn').style.display = 'none';
+                document.getElementById('formContainer').style.display = 'none';
+
+                const uploadText = document.getElementById('uploadText');
+                uploadText.innerHTML = '📁 Drag & drop your Excel/CSV file here<br><span style="color: #64748b; font-size: 0.875rem;">or click to browse</span>';
+
+                goToStep(1);
+                updateStats();
+
+                showNotification('Ready for new batch!', 'info');
+            }
+        }
+
+        // Show Notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
