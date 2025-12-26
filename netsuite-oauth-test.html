@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSuite OAuth 2.0 Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 2px solid #3b82f6;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #475569;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #cbd5e1;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            font-family: monospace;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            color: #6ee7b7;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .instructions {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid #fbbf24;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #fcd34d;
+        }
+
+        .instructions strong {
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔐 NetSuite OAuth 2.0 Test</h1>
+            <p style="color: #94a3b8;">Test your NetSuite OAuth integration and C3F role permissions</p>
+        </div>
+
+        <!-- Step 1: Setup Instructions -->
+        <div class="card" id="setupCard">
+            <div class="step-indicator">
+                <div class="step-number">1</div>
+                <h2>Setup NetSuite Integration</h2>
+            </div>
+
+            <div class="instructions">
+                <strong>Before you start:</strong> Make sure you've created an integration in NetSuite<br>
+                <strong>Path:</strong> Setup → Integration → Manage Integrations → New
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Required Settings:</strong><br>
+                ✅ OAuth 2.0: Enabled<br>
+                ✅ Authorization Code Grant: Enabled<br>
+                ✅ Redirect URI: Copy the URL below and paste it in your NetSuite integration
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Redirect URI (Copy this to NetSuite):</label>
+                <div class="code-block" id="redirectUri">Loading...</div>
+                <button class="btn btn-primary" onclick="copyRedirectUri()" style="margin-top: 0.5rem;">
+                    📋 Copy Redirect URI
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">NetSuite Account ID:</label>
+                <input type="text" class="form-input" id="accountId" placeholder="e.g., 6733247_SB1" value="6733247_SB1">
+                <small style="color: #94a3b8;">Your sandbox account ID (visible in your NetSuite URL)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Client ID (from NetSuite Integration):</label>
+                <input type="text" class="form-input" id="clientId" placeholder="Paste your Client ID here">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Client Secret (from NetSuite Integration):</label>
+                <input type="password" class="form-input" id="clientSecret" placeholder="Paste your Client Secret here">
+            </div>
+
+            <button class="btn btn-success" onclick="startOAuthFlow()">
+                🚀 Start OAuth Test
+            </button>
+        </div>
+
+        <!-- Step 2: OAuth Flow -->
+        <div class="card hidden" id="authCard">
+            <div class="step-indicator">
+                <div class="step-number">2</div>
+                <h2>OAuth Authorization</h2>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>What happens next:</strong><br>
+                1. You'll be redirected to NetSuite login<br>
+                2. Select your role: <strong>C3F - Operations/Manufacturing</strong><br>
+                3. Authorize the application<br>
+                4. You'll be redirected back here
+            </div>
+
+            <button class="btn btn-primary" onclick="redirectToNetSuite()">
+                🔑 Login to NetSuite
+            </button>
+        </div>
+
+        <!-- Step 3: Results -->
+        <div class="card hidden" id="resultCard">
+            <div class="step-indicator">
+                <div class="step-number">3</div>
+                <h2>OAuth Test Results</h2>
+            </div>
+
+            <div id="resultContent"></div>
+
+            <button class="btn btn-primary" onclick="testApiCall()" id="testApiBtn" style="display: none;">
+                🧪 Test API Call
+            </button>
+
+            <button class="btn btn-success" onclick="resetTest()" style="margin-top: 1rem;">
+                🔄 Start New Test
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let config = {
+            accountId: '',
+            clientId: '',
+            clientSecret: '',
+            redirectUri: '',
+            authUrl: '',
+            tokenUrl: '',
+            accessToken: ''
+        };
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            // Set redirect URI to current page
+            config.redirectUri = window.location.origin + window.location.pathname;
+            document.getElementById('redirectUri').textContent = config.redirectUri;
+
+            // Check if we're returning from OAuth
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('code')) {
+                handleOAuthCallback();
+            }
+        });
+
+        // Copy redirect URI to clipboard
+        function copyRedirectUri() {
+            const uri = document.getElementById('redirectUri').textContent;
+            navigator.clipboard.writeText(uri).then(() => {
+                alert('✅ Redirect URI copied to clipboard!\n\nPaste this in your NetSuite integration settings.');
+            });
+        }
+
+        // Start OAuth flow
+        function startOAuthFlow() {
+            const accountId = document.getElementById('accountId').value.trim();
+            const clientId = document.getElementById('clientId').value.trim();
+            const clientSecret = document.getElementById('clientSecret').value.trim();
+
+            if (!accountId || !clientId || !clientSecret) {
+                alert('⚠️ Please fill in all required fields');
+                return;
+            }
+
+            // Save config
+            config.accountId = accountId;
+            config.clientId = clientId;
+            config.clientSecret = clientSecret;
+
+            // Build URLs
+            const baseUrl = `https://${accountId.toLowerCase().replace('_', '-')}.app.netsuite.com`;
+            config.authUrl = `${baseUrl}/app/login/oauth2/authorize.nl`;
+            config.tokenUrl = `https://${accountId.toLowerCase().replace('_', '-')}.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token`;
+
+            // Store config in sessionStorage
+            sessionStorage.setItem('oauthConfig', JSON.stringify(config));
+
+            // Show auth card
+            document.getElementById('setupCard').classList.add('hidden');
+            document.getElementById('authCard').classList.remove('hidden');
+        }
+
+        // Redirect to NetSuite for authorization
+        function redirectToNetSuite() {
+            const params = new URLSearchParams({
+                response_type: 'code',
+                client_id: config.clientId,
+                redirect_uri: config.redirectUri,
+                scope: 'rest_webservices',
+                state: generateRandomString(32)
+            });
+
+            sessionStorage.setItem('oauth_state', params.get('state'));
+
+            window.location.href = `${config.authUrl}?${params.toString()}`;
+        }
+
+        // Handle OAuth callback
+        async function handleOAuthCallback() {
+            // Restore config from sessionStorage
+            const savedConfig = sessionStorage.getItem('oauthConfig');
+            if (savedConfig) {
+                config = JSON.parse(savedConfig);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+            const savedState = sessionStorage.getItem('oauth_state');
+
+            // Validate state
+            if (state !== savedState) {
+                showError('Invalid state parameter. Possible CSRF attack.');
+                return;
+            }
+
+            // Show result card with loading
+            document.getElementById('setupCard').classList.add('hidden');
+            document.getElementById('authCard').classList.add('hidden');
+            document.getElementById('resultCard').classList.remove('hidden');
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-info">
+                    <div class="loading"></div> Exchanging authorization code for access token...
+                </div>
+            `;
+
+            // Exchange code for token
+            try {
+                await exchangeCodeForToken(code);
+            } catch (error) {
+                showError('Failed to exchange code for token: ' + error.message);
+            }
+        }
+
+        // Exchange authorization code for access token
+        async function exchangeCodeForToken(code) {
+            const tokenData = new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                redirect_uri: config.redirectUri
+            });
+
+            // Create Basic Auth header
+            const credentials = btoa(`${config.clientId}:${config.clientSecret}`);
+
+            try {
+                const response = await fetch(config.tokenUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': `Basic ${credentials}`
+                    },
+                    body: tokenData.toString()
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                config.accessToken = data.access_token;
+
+                // Show success
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="alert alert-success">
+                        ✅ <strong>OAuth Authentication Successful!</strong><br>
+                        Your C3F - Operations/Manufacturing role is working with OAuth 2.0!
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Access Token:</label>
+                        <div class="code-block">${data.access_token.substring(0, 50)}...</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Token Type:</label>
+                        <div class="code-block">${data.token_type}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Expires In:</label>
+                        <div class="code-block">${data.expires_in} seconds</div>
+                    </div>
+                `;
+
+                document.getElementById('testApiBtn').style.display = 'inline-flex';
+
+                // Clear URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+
+            } catch (error) {
+                showError('Token Exchange Failed: ' + error.message);
+            }
+        }
+
+        // Test API call
+        async function testApiCall() {
+            const btn = document.getElementById('testApiBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> Testing API...';
+
+            const apiUrl = `https://${config.accountId.toLowerCase().replace('_', '-')}.suitetalk.api.netsuite.com/services/rest/record/v1/metadata-catalog`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${config.accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                document.getElementById('resultContent').innerHTML += `
+                    <div class="alert alert-success" style="margin-top: 1rem;">
+                        ✅ <strong>API Call Successful!</strong><br>
+                        Successfully retrieved NetSuite metadata catalog
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">API Response (first 500 chars):</label>
+                        <div class="code-block">${JSON.stringify(data, null, 2).substring(0, 500)}...</div>
+                    </div>
+                `;
+
+                btn.style.display = 'none';
+
+            } catch (error) {
+                document.getElementById('resultContent').innerHTML += `
+                    <div class="alert alert-error" style="margin-top: 1rem;">
+                        ❌ <strong>API Call Failed</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.innerHTML = '🧪 Test API Call';
+            }
+        }
+
+        // Show error
+        function showError(message) {
+            document.getElementById('resultContent').innerHTML = `
+                <div class="alert alert-error">
+                    ❌ <strong>Error:</strong><br>
+                    ${message}
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 1rem;">
+                    <strong>Troubleshooting:</strong><br>
+                    • Make sure REST Web Services is enabled in NetSuite<br>
+                    • Verify your Client ID and Client Secret are correct<br>
+                    • Check that the redirect URI matches exactly<br>
+                    • Ensure the C3F role has OAuth permissions enabled
+                </div>
+            `;
+        }
+
+        // Reset test
+        function resetTest() {
+            sessionStorage.clear();
+            window.location.href = window.location.pathname;
+        }
+
+        // Generate random string for state parameter
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+    </script>
+</body>
+</html>
